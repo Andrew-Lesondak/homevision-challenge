@@ -1,73 +1,56 @@
-# React + TypeScript + Vite
+# HomeVision House Listings
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Infinite-scrolling React + TypeScript app for browsing the HomeVision staging house API.
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Loads houses from `https://staging.homevision.co/api_project/houses`
+- Requests data page by page with `page` and `per_page` parameters
+- Keeps earlier results visible while loading more
+- Retries flaky API responses before surfacing an error
+- Displays price formatting, Google Maps links, and image fallbacks
+- Uses virtualization so the table stays responsive as the list grows
 
-## React Compiler
+## Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Install
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Run locally
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Open the URL printed by Vite, usually `http://localhost:5173`.
+
+### Build for production
+
+```bash
+npm run build
+```
+
+### Lint
+
+```bash
+npm run lint
+```
+
+## Notes on implementation
+
+- `Start page` and `Per page` controls let you change the request range without leaving the page.
+- House photos open the original image in a new tab.
+- If an image is missing or fails to load, the UI shows a descriptive placeholder instead of a broken thumbnail.
+- Address rows link to Google Maps search results for convenience.
+- Errors are shown in a dedicated banner with a retry button so previously loaded houses remain visible.
+
+## Future improvements
+
+- Add automated unit tests for the helper functions and query behavior.
+- Add an end-to-end test that scrolls the table and verifies pagination.
+- Improve image hover interactions with an inline preview popover.
+- Add accessibility audits and keyboard-focused table navigation.
+- Consider a more explicit loading state for the first page and for pagination retries.

@@ -1,21 +1,144 @@
+import { useMemo, useState } from 'react';
+
+import homevisionLogo from '../assets/homevision_logo.png';
 import { useGetHouses } from '../api/useGetHouses';
+import { Loader } from './Loader';
 import HousesTable from './HousesTable';
 
 function HouseListingPage() {
-  const { data, isFetching, isLoading, fetchNextPage } = useGetHouses([
-    'get-houses',
-  ]);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+
+  const query = useGetHouses({ page, perPage });
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetchingNextPage,
+    isLoading,
+    refetch,
+  } = query;
+
+  const stats = useMemo(() => {
+    const loaded = data?.pages.reduce((total, current) => total + current.houses.length, 0) ?? 0;
+    const pages = data?.pages.length ?? 0;
+
+    return { loaded, pages };
+  }, [data?.pages]);
+
+  const handlePageChange = (value: string) => {
+    const nextValue = Number.parseInt(value, 10);
+    setPage(Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 1);
+  };
+
+  const handlePerPageChange = (value: string) => {
+    const nextValue = Number.parseInt(value, 10);
+    setPerPage(Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 10);
+  };
 
   return (
-    // <div className="m-auto">
-    <div className="flex flex-col">
-      <img className="w-auto p-12" src="../src/assets/homevision_logo.png"></img>
-      <HousesTable
-        data={data}
-        fetchNextPage={fetchNextPage}
-        isFetching={isFetching}
-        isLoading={isLoading}
-      />
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.18),transparent_28%),linear-gradient(180deg,#f8fbff_0%,#edf4ff_100%)] text-slate-900">
+      <main className="flex flex-col w-full min-h-screen px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 shadow-[0_24px_80px_rgba(15,23,42,0.14)] backdrop-blur">
+          <div className="px-5 py-5 border-b border-slate-200/80 sm:px-7">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl space-y-4 text-left">
+                <img
+                  className="w-auto h-12 sm:h-14"
+                  src={homevisionLogo}
+                  alt="HomeVision"
+                />
+                <div className="space-y-2">
+                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                    Infinite scroll house listings
+                  </h1>
+                  <p className="max-w-xl text-sm leading-6 text-slate-600 sm:text-base">
+                    Houses load page by page, retry flaky responses, and keep earlier results
+                    visible so the list can keep growing even when the API has a bad moment.
+                  </p>
+                </div>
+              </div>
+
+              <form
+                className="grid gap-3 p-4 text-left border shadow-sm rounded-2xl border-slate-200 bg-slate-50/90 sm:grid-cols-2"
+                onSubmit={(event) => event.preventDefault()}
+              >
+                <label className="space-y-1 text-sm font-medium text-slate-700">
+                  <span>Start page</span>
+                  <input
+                    className="w-full px-3 py-2 transition bg-white border shadow-sm outline-none rounded-xl border-slate-300 text-slate-900 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                    inputMode="numeric"
+                    min={1}
+                    name="page"
+                    onChange={(event) => handlePageChange(event.target.value)}
+                    type="number"
+                    value={page}
+                  />
+                </label>
+                <label className="space-y-1 text-sm font-medium text-slate-700">
+                  <span>Per page</span>
+                  <input
+                    className="w-full px-3 py-2 transition bg-white border shadow-sm outline-none rounded-xl border-slate-300 text-slate-900 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                    inputMode="numeric"
+                    min={1}
+                    name="perPage"
+                    onChange={(event) => handlePerPageChange(event.target.value)}
+                    type="number"
+                    value={perPage}
+                  />
+                </label>
+              </form>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mt-5 text-xs font-medium text-slate-600">
+              <span className="px-3 py-1 bg-white border rounded-full border-slate-200">
+                Loaded {stats.loaded} houses
+              </span>
+              <span className="px-3 py-1 bg-white border rounded-full border-slate-200">
+                {stats.pages} pages in cache
+              </span>
+              <span className="px-3 py-1 bg-white border rounded-full border-slate-200">
+                Query starts at page {page} with {perPage} per page
+              </span>
+              {isFetchingNextPage ? (
+                <span className="px-3 py-1 border rounded-full border-sky-200 bg-sky-50 text-sky-700">
+                  <Loader label="Loading next page" />
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="px-4 py-5 space-y-4 sm:px-7">
+            {isError ? (
+              <div className="flex flex-col gap-3 px-4 py-4 text-left border rounded-2xl border-amber-200 bg-amber-50 text-amber-950">
+                <p className="font-semibold">The API returned an error.</p>
+                <p className="text-sm leading-6">
+                  {error instanceof Error ? error.message : 'Something went wrong while fetching houses.'}
+                </p>
+                <div>
+                  <button
+                    className="px-4 py-2 text-sm font-semibold text-white transition rounded-full bg-amber-950 hover:bg-amber-800 focus:outline-none focus:ring-4 focus:ring-amber-200"
+                    onClick={() => refetch()}
+                    type="button"
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            <HousesTable
+              data={data}
+              fetchNextPage={fetchNextPage}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              isLoading={isLoading}
+            />
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
