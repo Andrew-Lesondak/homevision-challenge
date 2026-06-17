@@ -703,6 +703,11 @@ acorn@^8.16.0:
   resolved "https://registry.npmjs.org/acorn/-/acorn-8.17.0.tgz"
   integrity sha512-xRQbDb9BnwDafYNn6Vwl839DYVjqXYb1XVGtWAZ1kcDc6iwAL4hg3B1dZlRiuENFeO2H53gFG3in621AdERVAg==
 
+addresser@^1.1.20:
+  version "1.1.20"
+  resolved "https://registry.yarnpkg.com/addresser/-/addresser-1.1.20.tgz#4c5af53e7753417412d3097e8078b6e63e77fc53"
+  integrity sha512-+RF7y2RkgulLWdiKNwWW2d21RXneDcYasFdeR+kbUmSXp5HqrAAIh3f8YLaHV4WsjzN4L0XG2GhlfHwa1jkeLg==
+
 ajv@^6.14.0:
   version "6.15.0"
   resolved "https://registry.npmjs.org/ajv/-/ajv-6.15.0.tgz"
