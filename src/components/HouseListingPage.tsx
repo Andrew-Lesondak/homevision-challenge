@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import homevisionLogo from '../assets/homevision_logo.png';
 import { useGetHouses } from '../api/useGetHouses';
 import HousesTable from './HousesTable';
-import { useToast } from './Toasts/ToastProvider';
+import { useToast } from './Toasts/useToast';
 
 function HouseListingPage() {
   const [page, setPage] = useState(1);
@@ -11,7 +11,6 @@ function HouseListingPage() {
 
   const { showToast } = useToast();
   const lastErrorMessageRef = useRef<string | null>(null);
-  const previousQueryRef = useRef({ page, perPage });
 
   const query = useGetHouses({ page, perPage });
   const {
@@ -43,18 +42,6 @@ function HouseListingPage() {
   };
 
   useEffect(() => {
-    const previousQuery = previousQueryRef.current;
-
-    if (previousQuery.page === page && previousQuery.perPage === perPage) {
-      return;
-    }
-
-    previousQueryRef.current = { page, perPage };
-    lastErrorMessageRef.current = null;
-
-  }, [page, perPage]);
-
-  useEffect(() => {
     if (!isError || !error) {
       return;
     }
@@ -66,6 +53,7 @@ function HouseListingPage() {
       return;
     }
 
+    // Only surface the terminal failure so the loading row stays the primary retry signal.
     lastErrorMessageRef.current = key;
     showToast({
       action: {

@@ -1,13 +1,10 @@
 import { type PropsWithChildren } from 'react';
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { waitFor } from '@testing-library/dom';
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-
 import { getNextHousePageParam, useGetHouses } from './useGetHouses';
-
-const API_URL = 'https://staging.homevision.co/api_project/houses';
+import { API_URL } from '../utils/constants';
 
 const createWrapper = () => {
   const queryClient = new QueryClient({

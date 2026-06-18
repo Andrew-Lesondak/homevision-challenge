@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import { URL, type HouseResponse } from '../utils/constants';
+import { API_URL, type HouseResponse } from '../utils/constants';
 
 type UseGetHousesParams = {
   page: number;
@@ -16,7 +16,7 @@ const fetchHouses = async ({
   startPage: number;
   perPage: number;
 }) => {
-  const response = await fetch(`${URL}?page=${pageParam}&per_page=${perPage}`);
+  const response = await fetch(`${API_URL}?page=${pageParam}&per_page=${perPage}`);
 
   if (!response.ok) {
     // When the API runs out of later pages, treat common "no more data" statuses as exhaustion

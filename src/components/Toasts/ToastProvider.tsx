@@ -1,7 +1,5 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -10,31 +8,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 
-type ToastTone = 'error' | 'info' | 'success' | 'warning';
-
-type ToastAction = {
-  label: string;
-  onClick: () => void;
-};
-
-type ToastInput = {
-  action?: ToastAction;
-  description?: string;
-  durationMs?: number;
-  title: string;
-  tone?: ToastTone;
-};
-
-type Toast = ToastInput & {
-  id: string;
-};
-
-type ToastContextValue = {
-  showToast: (toast: ToastInput) => string;
-  dismissToast: (id: string) => void;
-};
-
-const ToastContext = createContext<ToastContextValue | null>(null);
+import { ToastContext, type Toast, type ToastInput, type ToastTone } from './toastContext';
 
 const toneStyles: Record<ToastTone, string> = {
   error: 'border-rose-200 bg-rose-50 text-rose-950',
@@ -143,17 +117,3 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     </ToastContext.Provider>
   );
 }
-
-// The provider and hook intentionally live together so toast state stays colocated.
-// eslint-disable-next-line react-refresh/only-export-components
-export function useToast() {
-  const context = useContext(ToastContext);
-
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-
-  return context;
-}
-
-export type { ToastInput, ToastTone };

@@ -4,7 +4,6 @@ import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   type Row,
   useReactTable,
 } from '@tanstack/react-table';
@@ -89,7 +88,6 @@ function HousesTable({
       },
       {
         accessorKey: 'photoURL',
-        // header: () => <span className="block w-full text-left">Photo</span>,
         header: '',
         cell: (info) => <HousePhoto house={info.row.original} />,
       },
@@ -102,16 +100,11 @@ function HousesTable({
     [data],
   );
 
-  // TanStack Table currently triggers the React Compiler compatibility warning here.
-  // The hook is still safe to use in this app, so we intentionally keep it.
-  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: flatData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => String(row.id),
-    manualSorting: true,
   });
 
   const rows = table.getRowModel().rows;
@@ -178,12 +171,13 @@ function HousesTable({
 
   return (
     <div className="overflow-hidden border shadow-sm rounded-3xl border-slate-200 bg-white/95">
+      {/* Keep the table horizontally scrollable on narrow screens instead of collapsing columns. */}
       <div
         ref={tableContainerRef}
         className="relative max-h-[63vh] overflow-auto"
         onScroll={(event) => fetchMoreOnBottomReached(event.currentTarget)}
       >
-        <table className="grid w-full">
+        <table className="grid w-full min-w-[68rem]">
           <thead className="sticky top-0 z-10 grid text-sm font-semibold border-b border-slate-200 bg-white/95 text-slate-700 backdrop-blur">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="flex w-full">
@@ -193,12 +187,7 @@ function HousesTable({
                     className="flex items-center w-full px-4 py-3 text-left"
                     scope="col"
                   >
-                    <div
-                      className={
-                        header.column.getCanSort() ? 'w-full cursor-pointer select-none' : 'w-full'
-                      }
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
+                    <div className="w-full">
                       {flexRender(header.column.columnDef.header, header.getContext())}
                     </div>
                   </th>
@@ -240,7 +229,9 @@ function HousesTable({
                   colSpan={columns.length}
                   className="flex items-center justify-center w-full px-4 py-3 text-center"
                 >
-                  {isFetchingNextPage ? <Loader label={footerMessage} compact /> : (
+                  {isFetchingNextPage ? (
+                    <Loader label={footerMessage} compact />
+                  ) : (
                     <span className="text-sm font-medium text-slate-500">{footerMessage}</span>
                   )}
                 </td>

@@ -1,4 +1,4 @@
-export const URL = 'https://staging.homevision.co/api_project/houses';
+export const API_URL = 'https://staging.homevision.co/api_project/houses';
 
 export type House = {
   address: string;
@@ -7,8 +7,6 @@ export type House = {
   photoURL: string;
   price: number;
 };
-
-export type Houses = House[];
 
 export type HouseResponse = {
   houses: House[];

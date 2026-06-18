@@ -73,4 +73,5 @@ npm run storybook
 
 - Add an end-to-end test that scrolls the table and verifies pagination.
 - Add accessibility audits and keyboard-focused table navigation.
+- Make the table more mobile friendly, potentially with a card layout or a denser narrow-screen treatment.
 - Consider a more explicit loading state for the first page and for pagination retries.
