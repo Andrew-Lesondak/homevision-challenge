@@ -13,6 +13,10 @@ Infinite-scrolling React + TypeScript app for browsing the HomeVision staging ho
 
 ## Getting Started
 
+### Environment
+
+Developed with Node.js `v26.2.0` and npm `11.13.0`.
+
 ### Install
 
 ```bash
