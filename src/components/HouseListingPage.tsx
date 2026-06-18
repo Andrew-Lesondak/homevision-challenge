@@ -1,20 +1,25 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import homevisionLogo from '../assets/homevision_logo.png';
 import { useGetHouses } from '../api/useGetHouses';
 import HousesTable from './HousesTable';
+import { useToast } from './Toasts/ToastProvider';
 
 function HouseListingPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
+  const { showToast } = useToast();
+  const lastErrorMessageRef = useRef<string | null>(null);
+  const previousQueryRef = useRef({ page, perPage });
+
   const query = useGetHouses({ page, perPage });
   const {
     data,
-    error,
     fetchNextPage,
-    hasNextPage,
+    error,
     isError,
+    hasNextPage,
     isFetchingNextPage,
     isLoading,
     refetch,
@@ -37,6 +42,43 @@ function HouseListingPage() {
     setPerPage(Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 10);
   };
 
+  useEffect(() => {
+    const previousQuery = previousQueryRef.current;
+
+    if (previousQuery.page === page && previousQuery.perPage === perPage) {
+      return;
+    }
+
+    previousQueryRef.current = { page, perPage };
+    lastErrorMessageRef.current = null;
+
+  }, [page, perPage]);
+
+  useEffect(() => {
+    if (!isError || !error) {
+      return;
+    }
+
+    const message = error instanceof Error ? error.message : 'Something went wrong while fetching houses.';
+    const key = `${page}:${perPage}:${message}`;
+
+    if (lastErrorMessageRef.current === key) {
+      return;
+    }
+
+    lastErrorMessageRef.current = key;
+    showToast({
+      action: {
+        label: 'Retry',
+        onClick: () => void refetch(),
+      },
+      description: message,
+      durationMs: 9000,
+      title: 'The API returned an error.',
+      tone: 'error',
+    });
+  }, [error, isError, page, perPage, refetch, showToast]);
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.18),transparent_28%),linear-gradient(180deg,#f8fbff_0%,#edf4ff_100%)] text-slate-900">
       <main className="flex flex-col w-full min-h-screen px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -54,8 +96,7 @@ function HouseListingPage() {
                     Infinite scroll house listings
                   </h1>
                   <p className="max-w-xl text-sm leading-6 text-slate-600 sm:text-base">
-                    Houses load page by page, retry flaky responses, and keep earlier results
-                    visible so the list can keep growing even when the API has a bad moment.
+                    Houses load page by page, auto retries flaky responses, and caches earlier results visible so the list can keep growing even when the API has a hiccup.
                   </p>
                 </div>
               </div>
@@ -105,24 +146,6 @@ function HouseListingPage() {
           </div>
 
           <div className="px-4 py-5 space-y-4 sm:px-7">
-            {isError ? (
-              <div className="flex flex-col gap-3 px-4 py-4 text-left border rounded-2xl border-amber-200 bg-amber-50 text-amber-950">
-                <p className="font-semibold">The API returned an error.</p>
-                <p className="text-sm leading-6">
-                  {error instanceof Error ? error.message : 'Something went wrong while fetching houses.'}
-                </p>
-                <div>
-                  <button
-                    className="px-4 py-2 text-sm font-semibold text-white transition rounded-full bg-amber-950 hover:bg-amber-800 focus:outline-none focus:ring-4 focus:ring-amber-200"
-                    onClick={() => refetch()}
-                    type="button"
-                  >
-                    Retry
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
             <HousesTable
               data={data}
               fetchNextPage={fetchNextPage}

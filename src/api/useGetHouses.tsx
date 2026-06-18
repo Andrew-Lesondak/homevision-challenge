@@ -19,6 +19,8 @@ const fetchHouses = async ({
   const response = await fetch(`${URL}?page=${pageParam}&per_page=${perPage}`);
 
   if (!response.ok) {
+    // When the API runs out of later pages, treat common "no more data" statuses as exhaustion
+    // rather than a hard error so infinite scroll can stop naturally without a magic page number.
     if (pageParam > startPage && [204, 404, 410].includes(response.status)) {
       return {
         ok: true,

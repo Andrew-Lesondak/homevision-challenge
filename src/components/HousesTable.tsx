@@ -89,7 +89,8 @@ function HousesTable({
       },
       {
         accessorKey: 'photoURL',
-        header: () => <span className="block w-full text-left">Photo</span>,
+        // header: () => <span className="block w-full text-left">Photo</span>,
+        header: '',
         cell: (info) => <HousePhoto house={info.row.original} />,
       },
     ],

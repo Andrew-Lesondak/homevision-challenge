@@ -7,7 +7,7 @@ Infinite-scrolling React + TypeScript app for browsing the HomeVision staging ho
 - Loads houses from `https://staging.homevision.co/api_project/houses`
 - Requests data page by page with `page` and `per_page` parameters
 - Keeps earlier results visible while loading more
-- Retries flaky API responses before surfacing an error
+- Auto retries flaky API responses before showing an error
 - Displays price formatting, Google Maps links, and image fallbacks
 - Uses virtualization so the table stays responsive as the list grows
 
@@ -57,7 +57,17 @@ npm run storybook
 - House photos open the original image in a new tab.
 - If an image is missing or fails to load, the UI shows a descriptive placeholder instead of a broken thumbnail.
 - Address rows link to Google Maps search results for convenience.
-- Errors are shown in a dedicated banner with a retry button so previously loaded houses remain visible.
+- Errors are surfaced through toasts with retry actions so previously loaded houses remain visible.
+
+## Production Notes
+
+- Flaky API responses are handled with retries and a single final error toast if the cycle still fails.
+- Infinite scroll stops naturally when the API appears exhausted, so the app does not rely on a hard-coded last page.
+- Virtualized rows keep the table responsive as the dataset grows.
+- Hover previews and image fallbacks are isolated so failed media does not break the surrounding table layout.
+- The loading row is the primary in-flow status indicator; toasts are reserved for hard failures.
+- Accessibility was considered with semantic table structure, descriptive image alt text, and keyboard-friendly link/button elements.
+- This project intentionally includes tests and Storybook so a reviewer can run, validate, and inspect key UI states without needing the full app flow.
 
 ## Future improvements
 
