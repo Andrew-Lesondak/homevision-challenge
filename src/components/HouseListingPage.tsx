@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import homevisionLogo from '../assets/homevision_logo.png';
 import { useGetHouses } from '../api/useGetHouses';
@@ -8,9 +8,17 @@ import { useToast } from './Toasts/useToast';
 function HouseListingPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
+  const [retryBanner, setRetryBanner] = useState<{
+    phase: 'idle' | 'retrying' | 'success';
+    visible: boolean;
+  }>({
+    phase: 'idle',
+    visible: false,
+  });
 
   const { showToast } = useToast();
   const lastErrorMessageRef = useRef<string | null>(null);
+  const retryTimersRef = useRef<number[]>([]);
 
   const query = useGetHouses({ page, perPage });
   const {
@@ -41,6 +49,57 @@ function HouseListingPage() {
     setPerPage(Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 10);
   };
 
+  const clearRetryTimers = useCallback(() => {
+    retryTimersRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    retryTimersRef.current = [];
+  }, []);
+
+  const fadeOutRetryBanner = useCallback(() => {
+    clearRetryTimers();
+
+    setRetryBanner((current) => {
+      if (current.phase === 'idle' && !current.visible) {
+        return current;
+      }
+
+      return { ...current, visible: false };
+    });
+
+    const timeoutId = window.setTimeout(() => {
+      setRetryBanner({ phase: 'idle', visible: false });
+    }, 320);
+
+    retryTimersRef.current.push(timeoutId);
+  }, [clearRetryTimers]);
+
+  const showRetryStatus = useCallback(
+    (phase: 'success', options?: { autoHideMs?: number; fadeOutAfterMs?: number }) => {
+      clearRetryTimers();
+      setRetryBanner({ phase, visible: true });
+
+      const autoHideMs = options?.autoHideMs ?? 1200;
+      const fadeOutAfterMs = options?.fadeOutAfterMs ?? 320;
+
+      const fadeTimeoutId = window.setTimeout(() => {
+        setRetryBanner((current) => ({ ...current, visible: false }));
+      }, autoHideMs);
+
+      const resetTimeoutId = window.setTimeout(() => {
+        setRetryBanner({ phase: 'idle', visible: false });
+      }, autoHideMs + fadeOutAfterMs);
+
+      retryTimersRef.current.push(fadeTimeoutId, resetTimeoutId);
+    },
+    [clearRetryTimers],
+  );
+
+  useEffect(
+    () => () => {
+      clearRetryTimers();
+    },
+    [clearRetryTimers],
+  );
+
   useEffect(() => {
     if (!isError || !error) {
       return;
@@ -58,14 +117,37 @@ function HouseListingPage() {
     showToast({
       action: {
         label: 'Retry',
-        onClick: () => void refetch(),
+        onClick: async () => {
+          clearRetryTimers();
+          setRetryBanner({ phase: 'retrying', visible: true });
+          lastErrorMessageRef.current = null;
+
+          const retryResult = await refetch();
+
+          if (retryResult.isError) {
+            fadeOutRetryBanner();
+            return;
+          }
+
+          showRetryStatus('success');
+        },
       },
       description: message,
       durationMs: 9000,
       title: 'The API returned an error.',
       tone: 'error',
     });
-  }, [error, isError, page, perPage, refetch, showToast]);
+  }, [
+    clearRetryTimers,
+    error,
+    fadeOutRetryBanner,
+    isError,
+    page,
+    perPage,
+    refetch,
+    showRetryStatus,
+    showToast,
+  ]);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.18),transparent_28%),linear-gradient(180deg,#f8fbff_0%,#edf4ff_100%)] text-slate-900">
@@ -130,6 +212,22 @@ function HouseListingPage() {
               <span className="px-3 py-1 bg-white border rounded-full border-slate-200">
                 Results start at page {page} with {perPage} houses per page
               </span>
+              {retryBanner.phase !== 'idle' ? (
+                <span
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 transition-all duration-300 ${
+                    retryBanner.phase === 'success'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                      : 'border-sky-200 bg-sky-50 text-sky-800'
+                  } ${retryBanner.visible ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'}`}
+                >
+                  <span
+                    className={`inline-flex h-2 w-2 rounded-full ${
+                      retryBanner.phase === 'success' ? 'bg-emerald-500' : 'bg-sky-500'
+                    }`}
+                  />
+                  {retryBanner.phase === 'success' ? 'Retry succeeded' : 'Retrying request...'}
+                </span>
+              ) : null}
             </div>
           </div>
 
