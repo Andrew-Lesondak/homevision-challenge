@@ -1,14 +1,18 @@
 type LoaderProps = {
   label?: string;
+  compact?: boolean;
 };
 
-export const Loader = ({ label = 'Loading' }: LoaderProps) => {
+export const Loader = ({ label = 'Loading', compact = false }: LoaderProps) => {
+  const iconSize = compact ? 'h-4 w-4' : 'h-5 w-5';
+  const textSize = compact ? 'text-xs' : 'text-sm';
+
   return (
-    <div className="inline-flex items-center gap-3 text-sm text-slate-600">
+    <div className={`inline-flex items-center gap-2 leading-none text-slate-600 ${textSize}`}>
       <svg
         aria-hidden="true"
         fill="none"
-        className="h-5 w-5 animate-spin text-sky-600"
+        className={`${iconSize} shrink-0 animate-spin text-sky-600`}
         viewBox="0 0 64 64"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -20,7 +24,7 @@ export const Loader = ({ label = 'Loading' }: LoaderProps) => {
           stroke="currentColor"
         />
       </svg>
-      <span role="status" aria-live="polite">
+      <span role="status" aria-live="polite" className="whitespace-nowrap">
         {label}
       </span>
     </div>

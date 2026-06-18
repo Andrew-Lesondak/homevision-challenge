@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 
 import homevisionLogo from '../assets/homevision_logo.png';
 import { useGetHouses } from '../api/useGetHouses';
-import { Loader } from './Loader';
 import HousesTable from './HousesTable';
 
 function HouseListingPage() {
@@ -100,13 +99,8 @@ function HouseListingPage() {
                 {stats.pages} pages in cache
               </span>
               <span className="px-3 py-1 bg-white border rounded-full border-slate-200">
-                Query starts at page {page} with {perPage} per page
+                Results start at page {page} with {perPage} houses per page
               </span>
-              {isFetchingNextPage ? (
-                <span className="px-3 py-1 border rounded-full border-sky-200 bg-sky-50 text-sky-700">
-                  <Loader label="Loading next page" />
-                </span>
-              ) : null}
             </div>
           </div>
 

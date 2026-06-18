@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import {
   type ColumnDef,
@@ -15,8 +15,9 @@ import type {
 } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { House, HouseResponse } from '../utils/constants';
-import { formatAddress, formatDollars, getHouseImageAlt } from '../utils/helpers';
+import { formatAddress, formatDollars } from '../utils/helpers';
 import { Loader } from './Loader';
+import { HousePhoto } from './HousePhoto';
 
 type HousesTableProps = {
   data: InfiniteData<HouseResponse, unknown> | undefined;
@@ -27,41 +28,6 @@ type HousesTableProps = {
   isFetchingNextPage: boolean;
   isLoading: boolean;
 };
-
-type HousePhotoProps = {
-  house: House;
-};
-
-function HousePhoto({ house }: HousePhotoProps) {
-  const [failed, setFailed] = useState(false);
-
-  if (!house.photoURL || failed) {
-    return (
-      <div className="flex items-center justify-center w-32 h-20 px-3 text-xs font-medium text-center border border-dashed rounded-2xl border-slate-300 bg-slate-50 text-slate-500">
-        <span>No image for house #{house.id}</span>
-      </div>
-    );
-  }
-
-  return (
-    <a
-      aria-label={`Open original photo for house ${house.id} in a new tab`}
-      className="block group"
-      href={house.photoURL}
-      rel="noreferrer"
-      target="_blank"
-      title="Open original image"
-    >
-      <img
-        alt={getHouseImageAlt(house)}
-        className="h-20 w-32 rounded-2xl border border-slate-200 bg-slate-100 object-cover shadow-sm transition duration-200 group-hover:-translate-y-0.5 group-hover:scale-[1.02] group-hover:shadow-md"
-        loading="lazy"
-        onError={() => setFailed(true)}
-        src={house.photoURL}
-      />
-    </a>
-  );
-}
 
 function HousesTable({
   data,
@@ -160,6 +126,14 @@ function HousesTable({
     overscan: 8,
   });
 
+  const footerMessage = isFetchingNextPage
+    ? 'Loading more houses'
+    : !hasNextPage && rows.length > 0
+      ? 'All available houses loaded'
+      : null;
+
+  const footerRowHeight = footerMessage ? 72 : 0;
+
   const fetchMoreOnBottomReached = useCallback(
     (containerRefElement?: HTMLDivElement | null) => {
       if (!containerRefElement || isFetchingNextPage || !hasNextPage) {
@@ -233,7 +207,7 @@ function HousesTable({
           </thead>
           <tbody
             className="relative grid text-sm text-slate-700"
-            style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
+            style={{ height: `${rowVirtualizer.getTotalSize() + footerRowHeight}px` }}
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index] as Row<House>;
@@ -254,23 +228,26 @@ function HousesTable({
                 </tr>
               );
             })}
+
+            {footerMessage ? (
+              <tr
+                aria-live="polite"
+                className="absolute flex w-full text-slate-600"
+                style={{ transform: `translateY(${rowVirtualizer.getTotalSize()}px)` }}
+              >
+                <td
+                  colSpan={columns.length}
+                  className="flex items-center justify-center w-full px-4 py-3 text-center"
+                >
+                  {isFetchingNextPage ? <Loader label={footerMessage} compact /> : (
+                    <span className="text-sm font-medium text-slate-500">{footerMessage}</span>
+                  )}
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </div>
-
-      {isFetchingNextPage ? (
-        <div className="flex items-center justify-center gap-3 px-4 py-4 text-sm border-t border-slate-200 text-slate-600">
-          <Loader label="Loading more houses" />
-        </div>
-      ) : hasNextPage ? (
-        <div className="px-4 py-4 text-sm text-center border-t border-slate-200 text-slate-500">
-          Scroll to load more houses
-        </div>
-      ) : (
-        <div className="px-4 py-4 text-sm text-center border-t border-slate-200 text-slate-500">
-          You reached the end of the current results.
-        </div>
-      )}
     </div>
   );
 }

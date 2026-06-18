@@ -39,6 +39,18 @@ npm run build
 npm run lint
 ```
 
+### Tests
+
+```bash
+npm run test
+```
+
+### Storybook demo
+
+```bash
+npm run storybook
+```
+
 ## Notes on implementation
 
 - `Start page` and `Per page` controls let you change the request range without leaving the page.
@@ -49,8 +61,6 @@ npm run lint
 
 ## Future improvements
 
-- Add automated unit tests for the helper functions and query behavior.
 - Add an end-to-end test that scrolls the table and verifies pagination.
-- Improve image hover interactions with an inline preview popover.
 - Add accessibility audits and keyboard-focused table navigation.
 - Consider a more explicit loading state for the first page and for pagination retries.

@@ -9,28 +9,43 @@ type UseGetHousesParams = {
 
 const fetchHouses = async ({
   pageParam,
+  startPage,
   perPage,
 }: {
   pageParam: number;
+  startPage: number;
   perPage: number;
 }) => {
   const response = await fetch(`${URL}?page=${pageParam}&per_page=${perPage}`);
 
   if (!response.ok) {
+    if (pageParam > startPage && [204, 404, 410].includes(response.status)) {
+      return {
+        ok: true,
+        houses: [],
+      } as HouseResponse;
+    }
+
     throw new Error(`Request failed with status ${response.status}`);
   }
 
   return response.json() as Promise<HouseResponse>;
 };
 
+export const getNextHousePageParam = (
+  lastPage: HouseResponse,
+  lastPageParam: number,
+  perPage: number,
+) => (lastPage.houses.length < perPage ? undefined : lastPageParam + 1);
+
 export const useGetHouses = ({ page, perPage }: UseGetHousesParams) =>
   useInfiniteQuery({
     queryKey: ['get-houses', page, perPage],
     queryFn: ({ pageParam }) =>
-      fetchHouses({ pageParam: pageParam as number, perPage }),
+      fetchHouses({ pageParam: pageParam as number, perPage, startPage: page }),
     initialPageParam: page,
     getNextPageParam: (lastPage, _allPages, lastPageParam) =>
-      lastPage.houses.length < perPage ? undefined : lastPageParam + 1,
+      getNextHousePageParam(lastPage, lastPageParam, perPage),
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
     staleTime: 30_000,
